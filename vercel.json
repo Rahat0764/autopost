@@ -1,6 +1,6 @@
 {
   "functions": {
-    "dashboard/api/*.py": {
+    "dashboard/api/logs.py": {
       "runtime": "vercel-python@latest"
     }
   },
