@@ -1,11 +1,11 @@
 {
   "functions": {
-    "dashboard/api/logs.py": {
+    "api/*.py": {
       "runtime": "vercel-python@latest"
     }
   },
   "routes": [
-    { "src": "/api/logs", "dest": "dashboard/api/logs.py" },
+    { "src": "/api/logs", "dest": "api/logs.py" },
     { "src": "/", "dest": "dashboard/index.html" }
   ]
 }
