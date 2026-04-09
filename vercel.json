@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "dashboard/api/*.py": {
+      "runtime": "vercel-python@latest"
+    }
+  },
+  "routes": [
+    { "src": "/api/logs", "dest": "dashboard/api/logs.py" },
+    { "src": "/", "dest": "dashboard/index.html" }
+  ]
+}
