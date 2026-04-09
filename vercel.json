@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/logs.py": {
-      "runtime": "vercel-python@latest"
+      "runtime": "python3.11"
     }
   }
 }
