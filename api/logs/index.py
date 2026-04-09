@@ -1,6 +1,5 @@
 import requests
 import os
-import json
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
@@ -15,14 +14,12 @@ def handler(request):
             }
         )
 
-        data = res.json()
-
         return {
             "statusCode": 200,
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json; charset=utf-8"
             },
-            "body": json.dumps(data)
+            "body": res.text   # <-- IMPORTANT (json.dumps না)
         }
 
     except Exception as e:
@@ -31,5 +28,5 @@ def handler(request):
             "headers": {
                 "Content-Type": "application/json"
             },
-            "body": json.dumps({"error": str(e)})
+            "body": '{"error": "' + str(e) + '"}'
         }
