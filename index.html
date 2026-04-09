@@ -1,23 +1,22 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Dashboard</title>
-</head>
 <body>
 
 <h2>📊 Dashboard</h2>
-
 <button onclick="loadLogs()">Load Logs</button>
 
 <pre id="output"></pre>
 
 <script>
 async function loadLogs() {
-    const res = await fetch("/api/logs");
-    const data = await res.json();
+    try {
+        const res = await fetch("/api/logs");
+        const text = await res.text();   // <-- CHANGE
 
-    document.getElementById("output").textContent =
-        JSON.stringify(data, null, 2);
+        document.getElementById("output").textContent = text;
+    } catch (err) {
+        document.getElementById("output").textContent = "Error: " + err;
+    }
 }
 </script>
 
