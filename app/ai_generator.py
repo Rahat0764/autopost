@@ -3,12 +3,12 @@ from config import GROQ_API_KEY
 
 
 # ─────────────────────────────────────────────
-# Topic দেখে Role + Tone + Structure নির্ধারণ
+# Selecting Role + Tone + Structure based on topic
 # ─────────────────────────────────────────────
 
 ROLE_PROFILES = [
 
-    # ── ভাষা শিক্ষা / পরীক্ষা ──
+    # ── Language Trainer / Exam ──
     {
         "keywords": [
             "ielts", "toefl", "gre", "gmat", "sat", "jlpt", "n1", "n2", "n3", "n4", "n5",
@@ -39,7 +39,7 @@ ROLE_PROFILES = [
 বা 'JLPT N3 পাস করতে যারা বারবার ফেল করছ, এই লেখাটা তোমাদের জন্য'"""
     },
 
-    # ── ইমিগ্রেশন / কনসালটেন্সি / বিদেশ ──
+    # ── Immigration / Consultancy / Abroad ──
     {
         "keywords": [
             "জাপান", "কানাডা", "অস্ট্রেলিয়া", "জার্মানি", "ইউকে", "uk", "usa", "আমেরিকা",
@@ -77,7 +77,7 @@ ROLE_PROFILES = [
 বা 'কানাডায় পড়তে যেতে চাও? ২০২৫ সালে যা বদলে গেছে তা না জানলেই বিপদ'"""
     },
 
-    # ── ইতিহাস ──
+    # ── History ──
     {
         "keywords": [
             "ইতিহাস", "history", "মুক্তিযুদ্ধ", "liberation", "যুদ্ধ", "war", "সভ্যতা",
@@ -108,7 +108,7 @@ ROLE_PROFILES = [
 বা '১৯৭১ সালের সেই রাতের কথা যা ইতিহাস বদলে দিয়েছিল'"""
     },
 
-    # ── হরর / রহস্য ──
+    # ── Horror / Mystery ──
     {
         "keywords": [
             "horror", "হরর", "ভূত", "ghost", "ভৌতিক", "supernatural", "haunted",
@@ -138,7 +138,7 @@ ROLE_PROFILES = [
 বা 'রাত তিনটায় দরজায় টোকা — বাইরে কেউ ছিল না, কিন্তু পায়ের ছাপ ছিল'"""
     },
 
-    # ── সফটওয়্যার / টেক ──
+    # ── Software / Tech ──
     {
         "keywords": [
             "tech", "software", "developer", "programming", "code", "coding",
@@ -171,7 +171,7 @@ ROLE_PROFILES = [
     },
 ]
 
-# Default — কোনো keyword match না করলে
+# Default
 DEFAULT_PROFILE = {
     "role": """তুমি একজন অভিজ্ঞ লেখক ও বিশেষজ্ঞ বিশ্লেষক।
 তুমি যেকোনো বিষয়কে গভীরভাবে বিশ্লেষণ করতে পারো এবং সহজ, প্রাঞ্জল বাংলায় মানুষের কাছে পৌঁছে দিতে পারো।""",
