@@ -11,7 +11,7 @@
 
 An intelligent, autonomous bot that researches, writes, generates dynamic images, and publishes posts to your Facebook Page, completely controllable via Telegram.
 
-[🔑 Token Generator](https://token-generator-five-tan.vercel.app) · [🐞 Report Bug](https://github.com/Rahat0764/autopost/issues) · [👔 LinkedIn](https://www.linkedin.com/in/RahatAhmedX)
+🔑 [Token Generator](https://token-generator-five-tan.vercel.app) · 🐞 [Report Bug](https://github.com/Rahat0764/autopost/issues) · 👔 [LinkedIn](https://www.linkedin.com/in/RahatAhmedX)
 
 </div>
 
