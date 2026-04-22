@@ -28,7 +28,7 @@ An intelligent, autonomous bot that researches, writes, generates dynamic images
 
 ## 🛠️ Tech Stack
 
-* **Language:** Python 3.10+
+* **Language:** Python 3.14.3
 * **Libraries:** `Flask`, `Gunicorn`, `Requests`, `Pillow`
 * **APIs:** Facebook Graph API, Telegram Bot API, Google Gemini, Serper Search
 * **Database:** SQLite3 (Local caching, logs & history)
