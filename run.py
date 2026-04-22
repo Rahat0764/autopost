@@ -17,7 +17,7 @@ from ai_generator import generate_post
 import ai_generator
 from image_maker import create_image
 
-# Web server setup for Render and UptimeRobot
+# Web server setup for Render
 app = Flask(__name__)
 
 @app.route('/')
@@ -26,8 +26,6 @@ def home():
 
 POST_TIMES = ["09:00", "14:00", "21:00"]
 MAX_FB_RETRIES = 2
-TOKEN_WARN_DAYS = 7
-DAILY_TOKEN_WARN = 85_000
 
 _state = {
     "language": DEFAULT_LANGUAGE,
@@ -57,7 +55,7 @@ def next_topic() -> str:
 def notify(msg: str):
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_USER_IDS:
         return
-    uids = [u.strip() for u in TELEGRAM_USER_IDS.split(",") if u.strip()]
+    uids = [u.strip() for u in str(TELEGRAM_USER_IDS).split(",") if u.strip()]
     for uid in uids:
         try:
             requests.post(
@@ -120,11 +118,7 @@ def do_post(forced_topic: str = None):
         db.error("Post processing failed", {"topic": topic, "error": str(e)})
         notify(f"❌ Post Failed!\nTopic: {topic}\nError: {str(e)}")
 
-def check_token_expiry():
-    # Placeholder for token expiry logic
-    pass
-
-# --- Telegram Bot Polling Logic ---
+# Long polling function for Telegram Bot commands
 def bot_polling():
     if not TELEGRAM_BOT_TOKEN:
         print("Telegram Bot Token is missing. Polling disabled.")
@@ -136,7 +130,6 @@ def bot_polling():
     print("📡 Telegram polling started...")
     while True:
         try:
-            # timeout parameter helps in long polling
             response = requests.get(f"{url}?offset={last_update_id}&timeout=30", timeout=40)
             data = response.json()
             
@@ -151,16 +144,14 @@ def bot_polling():
                     chat_id = str(message["chat"]["id"])
                     text = message["text"].strip()
                     
-                    # Security check: Only allow authorized users
+                    # Security check
                     allowed_users = [u.strip() for u in str(TELEGRAM_USER_IDS).split(",") if u.strip()]
                     if chat_id not in allowed_users:
-                        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", 
-                                      json={"chat_id": chat_id, "text": "Unauthorized user."})
                         continue
 
-                    # Process Commands
+                    # Command routing
                     if text == "/help":
-                        reply = "Commands:\n/post - Force a random post now\n/post <topic> - Force post specific topic\n/pause - Pause bot\n/resume - Resume bot\n/status - Check bot status"
+                        reply = "Commands:\n/post - Force random post\n/post <topic> - Force specific topic\n/pause - Pause auto-post\n/resume - Resume auto-post\n/status - Check status"
                         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={"chat_id": chat_id, "text": reply})
                         
                     elif text.startswith("/post"):
@@ -176,7 +167,7 @@ def bot_polling():
 
                     elif text == "/pause":
                         _state["paused"] = True
-                        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={"chat_id": chat_id, "text": "⏸️ Bot paused. Scheduled posts will not run."})
+                        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={"chat_id": chat_id, "text": "⏸️ Bot paused."})
 
                     elif text == "/resume":
                         _state["paused"] = False
@@ -188,22 +179,18 @@ def bot_polling():
                         reply = f"Status: {status}\nLanguage: {_lang()}\nTotal Posts: {stats['total_posts']}\nToday Tokens: {stats['tokens_today']}"
                         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={"chat_id": chat_id, "text": reply})
                         
-        except requests.exceptions.RequestException as e:
-            # Ignore timeout/connection errors and retry
-            pass
         except Exception as e:
-            print(f"Polling error: {e}")
+            # Silently ignore connection errors during polling to prevent crash
             time.sleep(5)
             
-        time.sleep(1) # Small delay between requests to avoid rate limits if getting errors
+        time.sleep(1)
 
 def bot_loop():
     print("🚀 AutoPost bot logic started...")
     db.init_db()
     stats = db.get_stats_summary()
-    check_token_expiry()
     
-    # Start Telegram polling in a separate thread so it doesn't block posting logic
+    # Run telegram polling in background
     threading.Thread(target=bot_polling, daemon=True).start()
     
     notify(f"🚀 AutoPost Server Started!\nLanguage: {_lang()}\nTotal Posts: {stats['total_posts']}\nSend /help for commands.")
@@ -231,10 +218,10 @@ def bot_loop():
         time.sleep(30)
 
 if __name__ == "__main__":
-    # Start the background posting bot
+    # Start auto-poster background thread
     bot_thread = threading.Thread(target=bot_loop, daemon=True)
     bot_thread.start()
     
-    # Start the Web Server for Render
+    # Start Flask server for Render health checks
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
