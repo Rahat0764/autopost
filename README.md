@@ -59,7 +59,7 @@ To post automatically, you need a Meta App and a Never-Expiring Page Token.
 
 Clone the repository and install dependencies:
 ```bash
-git clone [https://github.com/Rahat0764/autopost.git](https://github.com/Rahat0764/autopost.git)
+git clone https://github.com/Rahat0764/autopost.git
 cd autopost
 pip install -r requirements.txt
 ```
