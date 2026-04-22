@@ -3,317 +3,505 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facebook Page Token Generator (One-Click)</title>
+    <title>Long Lived Page Token Generator</title>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- SweetAlert2 for Cute Alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        .input-field {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
-            transition: all 0.2s;
-        }
-        .input-field:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-        .btn-primary {
-            background-color: #1877f2; /* Facebook Blue */
-            color: white;
-            padding: 0.875rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            transition: all 0.2s;
+            font-family: 'Nunito', sans-serif;
+            /* Cool animated gradient background */
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-radius: 24px;
+        }
+
+        .input-field {
             width: 100%;
+            padding: 0.875rem 1.25rem;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            background-color: #f8fafc;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
         }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1877f2 0%, #0d5cce 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            box-shadow: 0 10px 20px -10px rgba(24, 119, 242, 0.5);
+        }
+
         .btn-primary:hover {
-            background-color: #166fe5;
-            transform: translateY(-1px);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 25px -10px rgba(24, 119, 242, 0.6);
         }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
         .btn-primary:disabled {
-            background-color: #9ca3af;
+            background: #cbd5e1;
+            box-shadow: none;
             cursor: not-allowed;
             transform: none;
         }
-        .result-box {
-            background-color: #f0fdf4;
-            border: 1px dashed #22c55e;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            word-break: break-all;
-            font-family: monospace;
-            font-size: 0.875rem;
-            color: #166534;
-            position: relative;
+
+        /* Cool Terminal Styles */
+        .terminal-window {
+            background: #1e1e2e;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
         }
-        .log-item {
+        
+        .terminal-header {
+            background: #2a2a35;
+            padding: 8px 16px;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            margin-bottom: 0.25rem;
-            color: #4b5563;
+            gap: 6px;
         }
-        .log-item.success { color: #16a34a; }
-        .log-item.error { color: #dc2626; }
+
+        .mac-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot-red { background: #ff5f56; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #27c93f; }
+
+        .terminal-body {
+            padding: 16px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #a6accd;
+            height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            scroll-behavior: smooth;
+        }
+
+        /* Scrollbar for terminal */
+        .terminal-body::-webkit-scrollbar { width: 6px; }
+        .terminal-body::-webkit-scrollbar-track { background: #1e1e2e; }
+        .terminal-body::-webkit-scrollbar-thumb { background: #45475a; border-radius: 3px; }
+
+        .log-info { color: #89b4fa; }
+        .log-success { color: #a6e3a1; }
+        .log-error { color: #f38ba8; }
+        .log-highlight { color: #f9e2af; word-break: break-all; }
+
+        /* Modal Animation */
+        .modal-enter {
+            animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .modal-exit {
+            animation: modalFadeOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes modalFadeOut {
+            from { opacity: 1; transform: scale(1) translateY(0); }
+            to { opacity: 0; transform: scale(0.95) translateY(20px); }
+        }
     </style>
 </head>
-<body class="text-gray-800 min-h-screen p-4 md:p-8 flex items-center justify-center">
+<body class="p-4 md:p-8">
 
-    <div class="max-w-2xl w-full">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-blue-600 mb-2 flex items-center justify-center gap-2">
-                <i data-lucide="facebook" class="w-8 h-8"></i> Token Generator
-            </h1>
-            <p class="text-gray-600">Generate a Never-Expiring Page Token in just one click</p>
-        </div>
+    <div class="w-full max-w-2xl mx-auto">
+        <!-- Main Card -->
+        <div class="glass-panel p-6 md:p-10 transition-all duration-500 hover:shadow-2xl">
+            
+            <!-- Header -->
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center justify-center p-3 bg-blue-100 rounded-full mb-4 text-blue-600 shadow-inner">
+                    <i data-lucide="key-round" class="w-10 h-10"></i>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 tracking-tight">
+                    Long Lived Page Token Generator
+                </h1>
+                <p class="text-gray-500 mt-2 font-medium">One click to rule them all. Generate a never-expiring token instantly.</p>
+            </div>
 
-        <!-- Toast Notification -->
-        <div id="toast" class="fixed top-5 right-5 bg-gray-800 text-white px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full opacity-0 z-50 flex items-center gap-2">
-            <i data-lucide="info" class="w-5 h-5"></i>
-            <span id="toast-msg">Message</span>
-        </div>
-
-        <!-- Main Form Card -->
-        <div class="glass-card rounded-xl p-6 md:p-8">
-            <div class="space-y-5">
+            <div class="space-y-6">
                 
-                <!-- Inputs -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">App ID</label>
-                        <input type="text" id="app_id" class="input-field" placeholder="e.g. 2009045752979562">
+                <!-- Inputs Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="relative group">
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5 ml-1">App ID</label>
+                        <input type="text" id="app_id" class="input-field" placeholder="e.g. 123456789012345">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">App Secret</label>
-                        <input type="password" id="app_secret" class="input-field" placeholder="Enter App Secret">
+                    <div class="relative group">
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5 ml-1">App Secret</label>
+                        <input type="password" id="app_secret" class="input-field" placeholder="e.g. a1b2c3d4e5f6...">
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Page ID</label>
-                    <input type="text" id="page_id" class="input-field" placeholder="e.g. 1114098271780554">
+                <div class="relative group">
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5 ml-1">Page ID</label>
+                    <input type="text" id="page_id" class="input-field" placeholder="e.g. 987654321098765">
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Short-Lived User Token</label>
-                    <input type="text" id="short_user_token" class="input-field" placeholder="Paste your short-lived user token here">
-                    <p class="text-xs text-gray-500 mt-1">Get this from Facebook Graph API Explorer</p>
-                </div>
-                
-                <!-- Action Button -->
-                <button id="btn_generate" onclick="generateOneClickToken()" class="btn-primary mt-4">
-                    <i data-lucide="key" class="w-5 h-5"></i> Generate Long-Lived Page Token
-                </button>
-
-                <!-- Processing Logs (Hidden by default) -->
-                <div id="logs_container" class="hidden mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 class="text-sm font-bold text-gray-700 mb-2 border-b pb-1">Process Logs:</h3>
-                    <div id="process_logs" class="space-y-1"></div>
-                </div>
-
-                <!-- Final Result Box (Hidden by default) -->
-                <div id="result_container" class="hidden mt-6">
-                    <label class="block text-sm font-bold text-green-600 mb-2 flex items-center gap-1">
-                        <i data-lucide="check-circle-2" class="w-5 h-5"></i> Final Long-Lived Page Token
-                    </label>
-                    <div class="result-box pr-12">
-                        <span id="final_token" class="select-all"></span>
-                        <button onclick="copyText('final_token')" class="absolute top-2 right-2 p-2 text-green-700 hover:bg-green-200 rounded-md transition-colors" title="Copy to clipboard">
-                            <i data-lucide="copy" class="w-5 h-5"></i>
+                <div class="relative group">
+                    <div class="flex items-center justify-between mb-1.5 ml-1 pr-1">
+                        <label class="block text-sm font-bold text-gray-700">Short-Lived User Token</label>
+                        <button onclick="toggleModal('instructionModal')" class="text-xs font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md transition-colors">
+                            <i data-lucide="help-circle" class="w-3 h-3"></i> How to get this?
                         </button>
                     </div>
-                    <p class="text-xs font-medium text-green-700 mt-2 text-center">
-                        ✅ This token will not expire. You can safely use it in your bot's environment variables.
-                    </p>
+                    <input type="text" id="short_user_token" class="input-field font-mono text-sm" placeholder="Paste your short-lived user token here...">
+                </div>
+                
+                <!-- Magic Button -->
+                <button id="btn_generate" onclick="startMagic()" class="btn-primary mt-8">
+                    <i data-lucide="wand-2" class="w-6 h-6"></i> Do The Magic!
+                </button>
+
+                <!-- Cool Terminal Logs -->
+                <div id="logs_container" class="hidden mt-8 animate-fade-in-up">
+                    <div class="terminal-window">
+                        <div class="terminal-header">
+                            <div class="mac-dot dot-red"></div>
+                            <div class="mac-dot dot-yellow"></div>
+                            <div class="mac-dot dot-green"></div>
+                            <span class="ml-2 text-xs text-gray-400 font-mono">token-generator ~ bash</span>
+                        </div>
+                        <div id="terminal_body" class="terminal-body">
+                            <!-- Logs will appear here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Box -->
+                <div id="result_container" class="hidden mt-8">
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-5 relative overflow-hidden shadow-sm">
+                        <!-- Decorative background icon -->
+                        <i data-lucide="shield-check" class="absolute -right-4 -bottom-4 w-32 h-32 text-green-100 opacity-50 transform rotate-12"></i>
+                        
+                        <label class="block text-sm font-extrabold text-green-700 mb-2 flex items-center gap-2 relative z-10">
+                            <i data-lucide="check-badge" class="w-5 h-5"></i> Final Long-Lived Page Token
+                        </label>
+                        
+                        <div class="bg-white border border-green-100 rounded-xl p-4 pr-14 relative z-10 font-mono text-sm text-green-800 break-all shadow-inner max-h-32 overflow-y-auto">
+                            <span id="final_token" class="select-all"></span>
+                            
+                            <button onclick="copyFinalToken()" class="absolute top-2 right-2 p-2.5 bg-green-100 text-green-700 hover:bg-green-500 hover:text-white rounded-lg transition-all duration-300 shadow-sm" title="Copy to clipboard">
+                                <i data-lucide="copy" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        
+                        <p class="text-xs font-bold text-green-600 mt-3 flex items-center justify-center gap-1 relative z-10">
+                            <i data-lucide="infinity" class="w-4 h-4"></i> This token will never expire!
+                        </p>
+                    </div>
                 </div>
 
             </div>
         </div>
         
-        <div class="text-center mt-6 text-sm text-gray-500">
-            <p>100% Client-Side. Your App Secret and Tokens never leave your browser.</p>
+        <p class="text-center mt-6 text-sm font-medium text-white/80 drop-shadow-md">
+            Built with 🩵 | 100% Client-Side API Calls
+        </p>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="instructionModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onclick="toggleModal('instructionModal')"></div>
+        
+        <!-- Modal Content -->
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative z-10 flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                <h3 class="text-lg font-extrabold text-gray-800 flex items-center gap-2">
+                    <i data-lucide="info" class="text-blue-500"></i> How to get Short User Token
+                </h3>
+                <button onclick="toggleModal('instructionModal')" class="text-gray-400 hover:text-red-500 transition-colors p-1 bg-white rounded-md shadow-sm">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-5">
+                <div class="flex gap-4 items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">1</div>
+                    <div>
+                        <p class="text-sm text-gray-700 font-medium">Go to the <a href="https://developers.facebook.com/tools/explorer/" target="_blank" class="text-blue-600 hover:underline font-bold">Graph API Explorer <i data-lucide="external-link" class="w-3 h-3 inline"></i></a>.</p>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4 items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">2</div>
+                    <div>
+                        <p class="text-sm text-gray-700 font-medium">In the right panel, select your <b>Meta App</b> from the dropdown.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">3</div>
+                    <div>
+                        <p class="text-sm text-gray-700 font-medium">Under "User or Page", select <b>Get User Token</b>.</p>
+                        <p class="text-xs text-gray-500 mt-1">Make sure you grant the necessary permissions (like `pages_manage_posts`, `pages_read_engagement` and `pages_show_list`).</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">4</div>
+                    <div>
+                        <p class="text-sm text-gray-700 font-medium">Copy the generated token from the <b>Access Token</b> box and paste it here.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-5 border-t bg-gray-50 rounded-b-2xl text-right">
+                <button onclick="toggleModal('instructionModal')" class="px-5 py-2 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-700 transition-colors">
+                    Got it!
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Initialize Lucide Icons
+        // Initialize Icons
         lucide.createIcons();
 
-        const API_VER = 'v19.0'; // Facebook Graph API Version
+        const API_VER = 'v19.0';
 
-        // Toast Notification System
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            const msgEl = document.getElementById('toast-msg');
-            msgEl.textContent = message;
-            
-            if (isError) {
-                toast.classList.replace('bg-gray-800', 'bg-red-600');
-            } else {
-                toast.classList.replace('bg-red-600', 'bg-gray-800');
+        // SweetAlert Toast Configuration
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
             }
+        });
 
-            toast.classList.remove('translate-x-full', 'opacity-0');
+        // Modal Toggle Logic
+        function toggleModal(modalID) {
+            const modal = document.getElementById(modalID);
+            const content = modal.querySelector('.relative.z-10');
             
-            setTimeout(() => {
-                toast.classList.add('translate-x-full', 'opacity-0');
-            }, 4000);
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                content.classList.remove('modal-exit');
+                content.classList.add('modal-enter');
+            } else {
+                content.classList.remove('modal-enter');
+                content.classList.add('modal-exit');
+                // Wait for animation to finish
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 300);
+            }
         }
 
-        // Copy Text Functionality
-        function copyText(elementId) {
-            const text = document.getElementById(elementId).innerText;
+        // Terminal Log Appender
+        function tLog(message, type = 'info') {
+            const term = document.getElementById('terminal_body');
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            let prefix = `<span class="text-gray-500">[${time}]</span>`;
+            let symbol = '>';
+            let cssClass = 'log-info';
+
+            if (type === 'success') { symbol = '✓'; cssClass = 'log-success'; }
+            if (type === 'error') { symbol = '✗'; cssClass = 'log-error'; }
+            if (type === 'highlight') { symbol = '↳'; cssClass = 'log-highlight'; }
+
+            const entry = document.createElement('div');
+            entry.innerHTML = `${prefix} <span class="${cssClass} font-bold">${symbol}</span> <span class="${cssClass}">${message}</span>`;
+            term.appendChild(entry);
+            
+            // Auto scroll to bottom
+            term.scrollTop = term.scrollHeight;
+        }
+
+        // Copy Function with Cute SweetAlert
+        function copyFinalToken() {
+            const text = document.getElementById('final_token').innerText;
             if (!text) return;
 
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text).then(() => {
-                    showToast("Token copied to clipboard!");
+            navigator.clipboard.writeText(text).then(() => {
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Copied to clipboard! 🚀'
                 });
-            } else {
-                // Fallback for older browsers or non-HTTPS environments
-                let textArea = document.createElement("textarea");
-                textArea.value = text;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-999999px";
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    showToast("Token copied to clipboard!");
-                } catch (err) {
-                    showToast("Failed to copy. Please select and copy manually.", true);
-                }
-                textArea.remove();
-            }
+            }).catch(() => {
+                Swal.fire('Oops...', 'Failed to copy. Please select manually.', 'error');
+            });
         }
 
-        // Add Log Entry
-        function addLog(message, status = 'info') {
-            const logsContainer = document.getElementById('process_logs');
-            let icon = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-blue-500"></i>';
-            if (status === 'success') icon = '<i data-lucide="check" class="w-4 h-4 text-green-500"></i>';
-            if (status === 'error') icon = '<i data-lucide="x" class="w-4 h-4 text-red-500"></i>';
-
-            const logHtml = `
-                <div class="log-item ${status}">
-                    ${icon} <span>${message}</span>
-                </div>
-            `;
-            logsContainer.insertAdjacentHTML('beforeend', logHtml);
-            lucide.createIcons();
-        }
-
-        // Clear UI before starting
+        // Pre-Execution Reset
         function resetUI() {
             document.getElementById('logs_container').classList.remove('hidden');
-            document.getElementById('process_logs').innerHTML = '';
+            document.getElementById('terminal_body').innerHTML = '';
             document.getElementById('result_container').classList.add('hidden');
             document.getElementById('final_token').innerText = '';
         }
 
-        // Main Execution Flow (One-Click)
-        async function generateOneClickToken() {
+        // The Magic Logic
+        async function startMagic() {
             const appId = document.getElementById('app_id').value.trim();
             const appSecret = document.getElementById('app_secret').value.trim();
             const pageId = document.getElementById('page_id').value.trim();
             const shortUserToken = document.getElementById('short_user_token').value.trim();
 
-            // Validation
             if (!appId || !appSecret || !pageId || !shortUserToken) {
-                showToast("Please fill in all the required fields!", true);
+                Swal.fire({
+                    title: 'Hold up!',
+                    text: 'You need to fill in all the fields before doing magic.',
+                    icon: 'warning',
+                    confirmButtonText: 'Got it',
+                    confirmButtonColor: '#3b82f6',
+                    customClass: { popup: 'rounded-2xl' }
+                });
                 return;
             }
 
             const btn = document.getElementById('btn_generate');
-            const originalBtnText = btn.innerHTML;
+            const originalBtnHtml = btn.innerHTML;
             
-            // Set Loading State
             btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Processing... Please wait`;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i> Processing Magic...`;
             lucide.createIcons();
             resetUI();
 
             try {
+                tLog("Initializing token generation sequence...", "info");
+
                 // ==========================================
-                // STEP 1: Exchange Short-Lived User Token for Long-Lived User Token
+                // STEP 1: Short to Long User Token
                 // ==========================================
-                addLog("Step 1: Generating Long-Lived User Token...", "info");
+                tLog("Step 1/3: Requesting Long-Lived User Token...");
                 const step1Url = `https://graph.facebook.com/${API_VER}/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${shortUserToken}`;
                 
                 let res1 = await fetch(step1Url);
                 let data1 = await res1.json();
                 
-                if (data1.error) throw new Error(`Step 1 Failed: ${data1.error.message}`);
+                if (data1.error) throw new Error(data1.error.message);
                 const longUserToken = data1.access_token;
-                addLog("Long-Lived User Token acquired successfully.", "success");
+                tLog("Success! Long-Lived User Token acquired.", "success");
+                tLog(longUserToken.substring(0, 15) + "...", "highlight");
 
 
                 // ==========================================
-                // STEP 2: Get Page Access Token using the Long-Lived User Token
+                // STEP 2: Get Page Token
                 // ==========================================
-                addLog("Step 2: Fetching Page Access Token...", "info");
+                tLog("Step 2/3: Fetching Page Access Token...");
                 const step2Url = `https://graph.facebook.com/${API_VER}/${pageId}?fields=access_token&access_token=${longUserToken}`;
                 
                 let res2 = await fetch(step2Url);
                 let data2 = await res2.json();
 
-                if (data2.error) throw new Error(`Step 2 Failed: ${data2.error.message}`);
+                if (data2.error) throw new Error(data2.error.message);
                 const pageToken = data2.access_token;
                 
-                if (!pageToken) throw new Error("Step 2 Failed: No token found. Ensure the user token has permission for this Page.");
-                addLog("Page Access Token acquired successfully.", "success");
+                if (!pageToken) throw new Error("No token found. Make sure the User Token has Page permissions.");
+                tLog("Success! Page Access Token acquired.", "success");
+                tLog(pageToken.substring(0, 15) + "...", "highlight");
 
 
                 // ==========================================
-                // STEP 3: Exchange Page Token for Never-Expiring Page Token
+                // STEP 3: Exchange for Never-Expiring Page Token
                 // ==========================================
-                addLog("Step 3: Generating Final Long-Lived Page Token...", "info");
+                tLog("Step 3/3: Forging Final Never-Expiring Token...");
                 const step3Url = `https://graph.facebook.com/${API_VER}/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${pageToken}`;
                 
                 let res3 = await fetch(step3Url);
                 let data3 = await res3.json();
 
-                if (data3.error) throw new Error(`Step 3 Failed: ${data3.error.message}`);
+                if (data3.error) throw new Error(data3.error.message);
                 const finalLongPageToken = data3.access_token;
-                addLog("Final Token generated successfully!", "success");
+                tLog("Absolute Success! Final Token forged.", "success");
 
                 // ==========================================
-                // FINISH: Display the result
+                // FINISH
                 // ==========================================
                 document.getElementById('final_token').innerText = finalLongPageToken;
                 document.getElementById('result_container').classList.remove('hidden');
-                showToast("Process completed successfully!");
+                
+                // Show cute success popup
+                Swal.fire({
+                    title: 'Magic Successful! 🎉',
+                    text: 'Your never-expiring page token is ready.',
+                    icon: 'success',
+                    confirmButtonText: 'Awesome!',
+                    confirmButtonColor: '#10b981',
+                    customClass: { popup: 'rounded-2xl' }
+                });
 
             } catch (error) {
-                addLog(error.message, "error");
-                showToast(error.message, true);
+                tLog(`Process Failed: ${error.message}`, "error");
+                Swal.fire({
+                    title: 'Oh no! Magic failed 😔',
+                    text: error.message,
+                    icon: 'error',
+                    confirmButtonText: 'Try Again',
+                    confirmButtonColor: '#ef4444',
+                    customClass: { popup: 'rounded-2xl' }
+                });
             } finally {
-                // Restore Button State
+                // Restore button
                 btn.disabled = false;
-                btn.innerHTML = originalBtnText;
+                btn.innerHTML = originalBtnHtml;
                 lucide.createIcons();
             }
         }
