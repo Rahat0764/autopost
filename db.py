@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import hashlib
 from datetime import datetime, date
 from pathlib import Path
 
@@ -72,6 +73,30 @@ def get_recent_topics(limit: int = 10) -> list[str]:
         rows = c.execute("SELECT topic FROM posts ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
         return [r["topic"] for r in rows]
 
+# --- Helper functions added for run.py and ai_generator.py compatibility ---
+
+def track_tokens(api_key_idx: int, model: str, tokens: int):
+    """Tracks token usage by calling the existing add_token_usage function."""
+    add_token_usage(api_key_idx, model, tokens)
+
+def is_title_duplicate(title: str) -> bool:
+    """Checks if a title already exists by hashing it."""
+    title_hash = hashlib.md5(title.encode('utf-8')).hexdigest()
+    return is_title_used(title_hash)
+
+def save_post(topic: str, title: str, content: str, language: str, fb_post_id: str):
+    """Saves a successfully generated post and its title hash to the database."""
+    now = datetime.now().isoformat()
+    title_hash = hashlib.md5(title.encode('utf-8')).hexdigest()
+    with _conn() as c:
+        c.execute(
+            "INSERT INTO posts (topic, title, content, language, fb_post_id, created_at) VALUES (?,?,?,?,?,?)",
+            (topic, title, content, language, fb_post_id, now)
+        )
+    mark_title_used(title_hash, topic)
+
+# -------------------------------------------------------------------------
+
 def is_title_used(title_hash: str) -> bool:
     with _conn() as c:
         row = c.execute("SELECT id FROM used_titles WHERE title_hash=?", (title_hash,)).fetchone()
@@ -121,9 +146,10 @@ def get_stats_summary() -> dict:
         last = c.execute(
             "SELECT created_at FROM posts ORDER BY id DESC LIMIT 1"
         ).fetchone()
+        
         return {
             "total_posts": total,
-            "today_posts": today_count,
+            "posts_today": today_count,
             "tokens_today": tokens_today,
-            "last_post_time": last[0] if last else None
+            "last_post": last[0] if last else None
         }
