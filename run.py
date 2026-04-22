@@ -403,6 +403,9 @@ def bot_polling():
             print(f"Polling error: {e}")
             time.sleep(5)
 
+from flask import Flask
+import os
+
 # Main
 def run():
     print("🚀 AutoPost starting...")
@@ -445,5 +448,17 @@ def run():
 
         time.sleep(30)
 
+
+# Flask Setup (For Render Health Checks)
+app = Flask(__name__)
+
+@app.route('/')
+def keep_alive():
+    return "AutoPost Bot is Running Perfectly!"
+
+# Start the bot loop in a background thread so Gunicorn can run the Flask app
+threading.Thread(target=run, daemon=True).start()
+
 if __name__ == "__main__":
-    run()
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host="0.0.0.0", port=port)
