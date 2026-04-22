@@ -32,9 +32,9 @@ MAX_RETRIES = 2
 
 # Angles
 ANGLES_BN = [
-    "কোনো ভনিতা ছাড়া সরাসরি মূল তথ্য ও গাইডলাইন দাও।",
-    "মানুষ যে ভুলটা সবচেয়ে বেশি করে, তা ধরিয়ে দিয়ে সমাধান দাও।",
-    "এই বিষয়ের এমন কিছু নির্দিষ্ট তথ্য দাও যা অনেকেই জানে না।",
+    "Give direct guidelines and main facts without any fluff.",
+    "Point out the biggest mistake people make, and provide a solution.",
+    "Give specific and lesser-known details about this topic.",
 ]
 ANGLES_EN = [
     "Give direct facts and guidelines without any fluff.",
@@ -46,16 +46,15 @@ ANGLES_EN = [
 def _detect_profile(topic: str, cy: int, ay: str) -> dict:
     t = topic.lower()
     if any(w in t for w in [
-        "scholarship", "study in", "স্কলারশিপ", "mext", "visa",
-        "abroad", "বিদেশ", "saudi", "quota", "কোটা",
+        "scholarship", "study in", "visa", "abroad", "saudi", "quota",
     ]):
         return {
             "bn": {
-                "role": f"তুমি একজন এক্সপার্ট কনসালটেন্ট। শিক্ষাবর্ষ: {ay}।",
+                "role": f"You are an expert consultant. Academic year: {ay}.",
                 "guide": (
-                    "Research data থেকে স্পেসিফিক তথ্য নাও। "
-                    "পোর্টাল নাম, কোটা, ডেডলাইন মিস করবে না। "
-                    "কোনো বাক্য রিপিট করবে না।"
+                    "Extract specific facts from research data. "
+                    "Do not miss portal names, quotas, or deadlines. "
+                    "Do not repeat any sentences."
                 ),
             },
             "en": {
@@ -69,11 +68,11 @@ def _detect_profile(topic: str, cy: int, ay: str) -> dict:
         }
     return {
         "bn": {
-            "role": f"তুমি একজন স্মার্ট কন্টেন্ট ক্রিয়েটর। বর্তমান: {cy} সাল।",
+            "role": f"You are a smart content creator. Current year: {cy}.",
             "guide": (
-                "Research data থেকে সঠিক তথ্য গুছিয়ে লেখো। "
-                "কোনো কথা বারবার রিপিট করবে না। "
-                "মানুষের মতো ক্যাজুয়াল কিন্তু প্রফেশনাল টোনে লেখো।"
+                "Organize exact facts from research data. "
+                "Do not repeat the same points. "
+                "Write in a casual yet professional tone like a human."
             ),
         },
         "en": {
@@ -94,15 +93,12 @@ def _is_same(title: str, topic: str) -> bool:
     nt, tp = _norm(title), _norm(topic)
     if nt == tp:
         return True
-    # Only reject if title is basically just the topic (≥90% identical)
     if len(tp) >= 8:
-        # Check word overlap
         tw = set(tp.split())
         nw = set(nt.split())
         if len(tw) > 0 and len(nw & tw) / len(tw) >= 0.90:
             return True
     return False
-
 
 def _parse(raw: str, fallback: str) -> dict:
     lines = raw.strip().splitlines()
@@ -118,7 +114,6 @@ def _parse(raw: str, fallback: str) -> dict:
             continue
         body.append(line)
 
-    # Fallback: heading from body
     if not title or _is_same(title, fallback):
         title, new_body = "", []
         for line in body:
@@ -137,8 +132,6 @@ def _parse(raw: str, fallback: str) -> dict:
         title = fallback
 
     content = "\n".join(body).strip()
-
-    # Strip markdown formatting (FB is plain text)
     content = re.sub(r'\*\*(.*?)\*\*', r'\1', content)
     content = re.sub(r'__(.*?)__',     r'\1', content)
     content = re.sub(r'\*(.*?)\*',     r'\1', content)
@@ -146,7 +139,6 @@ def _parse(raw: str, fallback: str) -> dict:
 
     content = strip_excess_emojis(content, MAX_EMOJI)
     return {"title": title, "content": content}
-
 
 def _validate(result: dict, language: str, topic: str) -> tuple[bool, str]:
     t, c = result.get("title", ""), result.get("content", "")
@@ -158,7 +150,6 @@ def _validate(result: dict, language: str, topic: str) -> tuple[bool, str]:
         return False, f"Content too short ({len(c)})"
     if "#" not in c:
         return False, "Hashtags missing"
-    # Repetition check
     lines = [l.strip() for l in c.splitlines() if len(l.strip()) > 20]
     for line in set(lines):
         if lines.count(line) >= 3:
@@ -178,35 +169,32 @@ def _build_prompt(
     p      = profile.get(language) or profile.get("bn")
     lang   = language.lower()
 
-    # ── Title instruction — 
-    #Logic: Title should never be Tile ≠ Topic, with specific example
     if lang == "bn":
-        bad_ex   = topic[:60]  # actual topic shown as bad example
+        bad_ex   = topic[:60]
         good_ex  = _generate_title_example(topic, "bn")
         title_block = f"""
-════ TITLE GENERATION (সবার আগে করো) ════
-তোমাকে একটা আকর্ষণীয় টাইটেল বানাতে হবে।
+════ TITLE GENERATION (Do this first) ════
+Create an engaging title.
 
-❌ এটা টাইটেল হিসেবে দেওয়া নিষেধ (এটা হলো topic):
+❌ DO NOT use this as the title (this is the topic):
    "{bad_ex}"
 
-✅ এইরকম কিছু দাও (এটা একটা উদাহরণ):
+✅ Create something like this (example only):
    "{good_ex}"
 
-নিয়ম:
-- Topic-এর শব্দ হুবহু copy করবে না
-- পাঠকের মনে কৌতূহল তৈরি করবে
-- ৮–১৫ শব্দের মধ্যে রাখবে
-{("⚠️ আগের চেষ্টায় যে টাইটেল দিয়েছিলে (" + bad_title[:50] + ") সেটা accept হয়নি কারণ সেটা topic-এর মতো। সম্পূর্ণ নতুন ও আলাদা একটা দাও।") if bad_title else ""}
+Rules:
+- Do not copy the topic words verbatim.
+- Create curiosity.
+- Keep it between 8 to 15 words.
+{("⚠️ Your previous title (" + bad_title[:50] + ") was rejected for being too similar to the topic. Give a completely new one.") if bad_title else ""}
 ════════════════════════════════════════════
 """
-        lang_inst    = "পুরো পোস্ট বাংলায় লিখবে।"
-        hashtag_note = "MANDATORY: একদম শেষে ৫-৭টি হ্যাশট্যাগ (#) দিবে।"
-        emoji_rule   = f"সর্বোচ্চ {MAX_EMOJI}টা emoji — শুধু paragraph break-এ।"
+        lang_inst    = "Write the entire post in Bengali language."
+        hashtag_note = "MANDATORY: Give 5-7 relevant hashtags at the very end."
+        emoji_rule   = f"Maximum {MAX_EMOJI} emojis — only at paragraph breaks."
         style_note   = (
-            "Facebook plain text — **Bold** বা [Link](url) Markdown নিষেধ। লিংক ডিলে সরাসরি লিংক দিবে যেমন 'Visit: www.*****.com এভাবে দিবে।'"
-            "\"পরিশেষে\", \"সুস্পষ্টভাবে\" এই ধরনের AI শব্দ নিষেধ। "
-            "কোনো বাক্য বারবার রিপিট করবে না। মনে করবে তুমি একজন মানুষ"
+            "Facebook plain text — no Markdown (Bold, Links). Provide direct URLs like 'Visit: www.site.com'. "
+            "Ban AI phrases. Never repeat the same sentences. Act like a human."
         )
     else:
         bad_ex  = topic[:60]
@@ -232,8 +220,8 @@ Rules:
         hashtag_note = "MANDATORY: End with 5-7 relevant hashtags."
         emoji_rule   = f"Maximum {MAX_EMOJI} emojis — only at paragraph breaks."
         style_note   = (
-            "Facebook plain text — no **Bold** or [Link](url) Markdown. If needs, give direct url example 'Visit: www.*****.com'"
-            "Ban: moreover, in conclusion, it is important to note. Avoid AI type generation, generate post as if you are a human."
+            "Facebook plain text — no **Bold** or [Link](url) Markdown. If needs, give direct url example 'Visit: www.*****.com' "
+            "Ban: moreover, in conclusion, it is important to note. Avoid AI type generation, generate post as if you are a human. "
             "Never repeat the same sentences."
         )
 
@@ -266,21 +254,18 @@ TITLE: <your unique title>
 {hashtag_note}
 """
 
-
 def _generate_title_example(topic: str, lang: str) -> str:
-    """Topic থেকে একটা example title তৈরি করে prompt-এ দেখায়।
-    এটা real title নয়, শুধু format বোঝানোর জন্য।"""
     t = topic.lower()
     if lang == "bn":
-        if any(w in t for w in ["পর্যটন", "tourism", "travel"]):
-            return "বাংলাদেশ ভ্রমণে যে ৫টা সমস্যা পর্যটকরা কেউ বলে না"
-        if any(w in t for w in ["ielts", "sat", "exam", "পরীক্ষা"]):
-            return "পরীক্ষার আগের রাতে যে ভুলটা সবাই করে"
+        if any(w in t for w in ["tourism", "travel"]):
+            return "বাংলাদেশ ভ্রমণে যে ৫টি সমস্যা কেউ বলে না"
+        if any(w in t for w in ["ielts", "sat", "exam"]):
+            return "পরীক্ষার আগের রাতে যে ভুলটি সবাই করে"
         if any(w in t for w in ["scholarship", "study", "visa"]):
-            return "এই স্কলারশিপে আবেদন করেননি অথচ সুযোগ ছিল"
+            return "এই স্কলারশিপে সুযোগ ছিল অথচ আপনি আবেদন করেননি"
         if any(w in t for w in ["tech", "software", "python"]):
-            return "সিনিয়র ডেভেলপাররা যে কাজটা কখনো করে না"
-        return "যে বিষয়টা সবাই জানে, কিন্তু কেউ মানে না"
+            return "সিনিয়র ডেভেলপাররা যে কাজটি কখনো করে না"
+        return "যে বিষয়টি সবাই জানে, কিন্তু কেউ মানে না"
     else:
         if any(w in t for w in ["tourism", "travel"]):
             return "5 Tourism Problems Nobody Talks About"
@@ -321,7 +306,7 @@ def call_gemini(prompt: str, model: str, api_key: str):
 # Core Generator
 def generate_post(topic: str, language: str = "bn") -> dict:
     if not GEMINI_API_KEYS:
-        raise RuntimeError("GEMINI_API_KEY .env-এ সেট করা নেই!")
+        raise RuntimeError("GEMINI_API_KEY is not set in .env!")
 
     lang    = language.lower()
     cy, ay  = _year(), _ay()
@@ -332,7 +317,7 @@ def generate_post(topic: str, language: str = "bn") -> dict:
     profile = _detect_profile(topic, cy, ay)
     angle   = random.choice(ANGLES_BN if lang == "bn" else ANGLES_EN)
     last_err = "Unknown"
-    bad_title_from_retry = ""   # carries over failed title for retry note
+    bad_title_from_retry = ""
 
     model_list = MODELS.copy()
     if PREFERRED_MODEL and PREFERRED_MODEL in model_list:
@@ -392,14 +377,13 @@ def generate_post(topic: str, language: str = "bn") -> dict:
                     continue
 
                 if tokens:
-                    db.track_tokens(key_idx, model, tokens)
+                    db.add_token_usage(key_idx, model, tokens)
 
                 parsed = _parse(raw_text, topic)
                 ok, reason = _validate(parsed, lang, topic)
                 if not ok:
                     last_err = reason
                     print(f"  ⚠️ Validation fail: {reason}")
-                    # Pass the bad title to next attempt
                     if "Title = Topic" in reason:
                         bad_title_from_retry = parsed.get("title", "")
                     continue
@@ -437,4 +421,4 @@ def generate_post(topic: str, language: str = "bn") -> dict:
                 break
 
     db.error("All keys/models failed", {"topic": topic, "last_error": last_err})
-    raise RuntimeError(f"সব API key ও model ব্যর্থ। Last: {last_err}")
+    raise RuntimeError(f"All API keys failed. Last error: {last_err}")
