@@ -1,8 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
+from pathlib import Path
 
-BASE_DIR  = os.path.dirname(os.path.dirname(__file__))
-FONTS_DIR = os.path.join(BASE_DIR, "fonts")
+FONTS_DIR = Path(__file__).parent / "fonts"
 
 # Themes
 THEMES = {
