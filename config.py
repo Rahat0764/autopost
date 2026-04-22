@@ -13,12 +13,10 @@ TELEGRAM_USER_IDS = os.getenv("TELEGRAM_USER_IDS")
 # Language
 DEFAULT_LANGUAGE = os.getenv("LANGUAGE", "bn").lower()
 
-# GEMINI API Keys (Comma separated in env variable)
-# Example: GEMINI_API_KEY=key1,key2,key3
+# GEMINI API Keys (Comma separated from environment variables)
 _keys: list[str] = []
 raw_keys = os.getenv("GEMINI_API_KEY", "")
 if raw_keys:
-    # Split by comma, remove whitespace, and ignore empty strings
     _keys = [k.strip() for k in raw_keys.split(",") if k.strip()]
 
 GEMINI_API_KEYS: list[str] = _keys
