@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Page Token Generator (One-Click)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+            transition: all 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .btn-primary {
+            background-color: #1877f2; /* Facebook Blue */
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            background-color: #166fe5;
+            transform: translateY(-1px);
+        }
+        .btn-primary:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result-box {
+            background-color: #f0fdf4;
+            border: 1px dashed #22c55e;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: #166534;
+            position: relative;
+        }
+        .log-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+            color: #4b5563;
+        }
+        .log-item.success { color: #16a34a; }
+        .log-item.error { color: #dc2626; }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen p-4 md:p-8 flex items-center justify-center">
+
+    <div class="max-w-2xl w-full">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-600 mb-2 flex items-center justify-center gap-2">
+                <i data-lucide="facebook" class="w-8 h-8"></i> Token Generator
+            </h1>
+            <p class="text-gray-600">Generate a Never-Expiring Page Token in just one click</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed top-5 right-5 bg-gray-800 text-white px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full opacity-0 z-50 flex items-center gap-2">
+            <i data-lucide="info" class="w-5 h-5"></i>
+            <span id="toast-msg">Message</span>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="glass-card rounded-xl p-6 md:p-8">
+            <div class="space-y-5">
+                
+                <!-- Inputs -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">App ID</label>
+                        <input type="text" id="app_id" class="input-field" placeholder="e.g. 2009045752979562">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">App Secret</label>
+                        <input type="password" id="app_secret" class="input-field" placeholder="Enter App Secret">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Page ID</label>
+                    <input type="text" id="page_id" class="input-field" placeholder="e.g. 1114098271780554">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Short-Lived User Token</label>
+                    <input type="text" id="short_user_token" class="input-field" placeholder="Paste your short-lived user token here">
+                    <p class="text-xs text-gray-500 mt-1">Get this from Facebook Graph API Explorer</p>
+                </div>
+                
+                <!-- Action Button -->
+                <button id="btn_generate" onclick="generateOneClickToken()" class="btn-primary mt-4">
+                    <i data-lucide="key" class="w-5 h-5"></i> Generate Long-Lived Page Token
+                </button>
+
+                <!-- Processing Logs (Hidden by default) -->
+                <div id="logs_container" class="hidden mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h3 class="text-sm font-bold text-gray-700 mb-2 border-b pb-1">Process Logs:</h3>
+                    <div id="process_logs" class="space-y-1"></div>
+                </div>
+
+                <!-- Final Result Box (Hidden by default) -->
+                <div id="result_container" class="hidden mt-6">
+                    <label class="block text-sm font-bold text-green-600 mb-2 flex items-center gap-1">
+                        <i data-lucide="check-circle-2" class="w-5 h-5"></i> Final Long-Lived Page Token
+                    </label>
+                    <div class="result-box pr-12">
+                        <span id="final_token" class="select-all"></span>
+                        <button onclick="copyText('final_token')" class="absolute top-2 right-2 p-2 text-green-700 hover:bg-green-200 rounded-md transition-colors" title="Copy to clipboard">
+                            <i data-lucide="copy" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs font-medium text-green-700 mt-2 text-center">
+                        ✅ This token will not expire. You can safely use it in your bot's environment variables.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+        
+        <div class="text-center mt-6 text-sm text-gray-500">
+            <p>100% Client-Side. Your App Secret and Tokens never leave your browser.</p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        const API_VER = 'v19.0'; // Facebook Graph API Version
+
+        // Toast Notification System
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            msgEl.textContent = message;
+            
+            if (isError) {
+                toast.classList.replace('bg-gray-800', 'bg-red-600');
+            } else {
+                toast.classList.replace('bg-red-600', 'bg-gray-800');
+            }
+
+            toast.classList.remove('translate-x-full', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+            }, 4000);
+        }
+
+        // Copy Text Functionality
+        function copyText(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            if (!text) return;
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast("Token copied to clipboard!");
+                });
+            } else {
+                // Fallback for older browsers or non-HTTPS environments
+                let textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast("Token copied to clipboard!");
+                } catch (err) {
+                    showToast("Failed to copy. Please select and copy manually.", true);
+                }
+                textArea.remove();
+            }
+        }
+
+        // Add Log Entry
+        function addLog(message, status = 'info') {
+            const logsContainer = document.getElementById('process_logs');
+            let icon = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-blue-500"></i>';
+            if (status === 'success') icon = '<i data-lucide="check" class="w-4 h-4 text-green-500"></i>';
+            if (status === 'error') icon = '<i data-lucide="x" class="w-4 h-4 text-red-500"></i>';
+
+            const logHtml = `
+                <div class="log-item ${status}">
+                    ${icon} <span>${message}</span>
+                </div>
+            `;
+            logsContainer.insertAdjacentHTML('beforeend', logHtml);
+            lucide.createIcons();
+        }
+
+        // Clear UI before starting
+        function resetUI() {
+            document.getElementById('logs_container').classList.remove('hidden');
+            document.getElementById('process_logs').innerHTML = '';
+            document.getElementById('result_container').classList.add('hidden');
+            document.getElementById('final_token').innerText = '';
+        }
+
+        // Main Execution Flow (One-Click)
+        async function generateOneClickToken() {
+            const appId = document.getElementById('app_id').value.trim();
+            const appSecret = document.getElementById('app_secret').value.trim();
+            const pageId = document.getElementById('page_id').value.trim();
+            const shortUserToken = document.getElementById('short_user_token').value.trim();
+
+            // Validation
+            if (!appId || !appSecret || !pageId || !shortUserToken) {
+                showToast("Please fill in all the required fields!", true);
+                return;
+            }
+
+            const btn = document.getElementById('btn_generate');
+            const originalBtnText = btn.innerHTML;
+            
+            // Set Loading State
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Processing... Please wait`;
+            lucide.createIcons();
+            resetUI();
+
+            try {
+                // ==========================================
+                // STEP 1: Exchange Short-Lived User Token for Long-Lived User Token
+                // ==========================================
+                addLog("Step 1: Generating Long-Lived User Token...", "info");
+                const step1Url = `https://graph.facebook.com/${API_VER}/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${shortUserToken}`;
+                
+                let res1 = await fetch(step1Url);
+                let data1 = await res1.json();
+                
+                if (data1.error) throw new Error(`Step 1 Failed: ${data1.error.message}`);
+                const longUserToken = data1.access_token;
+                addLog("Long-Lived User Token acquired successfully.", "success");
+
+
+                // ==========================================
+                // STEP 2: Get Page Access Token using the Long-Lived User Token
+                // ==========================================
+                addLog("Step 2: Fetching Page Access Token...", "info");
+                const step2Url = `https://graph.facebook.com/${API_VER}/${pageId}?fields=access_token&access_token=${longUserToken}`;
+                
+                let res2 = await fetch(step2Url);
+                let data2 = await res2.json();
+
+                if (data2.error) throw new Error(`Step 2 Failed: ${data2.error.message}`);
+                const pageToken = data2.access_token;
+                
+                if (!pageToken) throw new Error("Step 2 Failed: No token found. Ensure the user token has permission for this Page.");
+                addLog("Page Access Token acquired successfully.", "success");
+
+
+                // ==========================================
+                // STEP 3: Exchange Page Token for Never-Expiring Page Token
+                // ==========================================
+                addLog("Step 3: Generating Final Long-Lived Page Token...", "info");
+                const step3Url = `https://graph.facebook.com/${API_VER}/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${pageToken}`;
+                
+                let res3 = await fetch(step3Url);
+                let data3 = await res3.json();
+
+                if (data3.error) throw new Error(`Step 3 Failed: ${data3.error.message}`);
+                const finalLongPageToken = data3.access_token;
+                addLog("Final Token generated successfully!", "success");
+
+                // ==========================================
+                // FINISH: Display the result
+                // ==========================================
+                document.getElementById('final_token').innerText = finalLongPageToken;
+                document.getElementById('result_container').classList.remove('hidden');
+                showToast("Process completed successfully!");
+
+            } catch (error) {
+                addLog(error.message, "error");
+                showToast(error.message, true);
+            } finally {
+                // Restore Button State
+                btn.disabled = false;
+                btn.innerHTML = originalBtnText;
+                lucide.createIcons();
+            }
+        }
+    </script>
+</body>
+</html>
